@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -44,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  *  <tr> <td>o.s.web.bind.MissingServletRequestParameterException</td><td>BAD_REQUEST</td><th>400</td></tr>
  *  <tr> <td>o.s.web.bind.ServletRequestBindingException</td><td>BAD_REQUEST</td><th>400</td></tr>
  *  <tr> <td>o.s.web.method.annotation.MethodArgumentTypeMismatchException</td><td>BAD_REQUEST</td><th>400</td></tr>
- *  <tr> <td>javax.validation.ConstraintViolationException</td><td>BAD_REQUEST</td><th>400</td></tr>
+ *  <tr> <td>jakarta.validation.ConstraintViolationException</td><td>BAD_REQUEST</td><th>400</td></tr>
  *  <tr> <td>o.s.http.converter.HttpMessageNotReadableException</td><td>BAD_REQUEST</td><th>400</td></tr>
  * <tr> <td>o.s.web.servlet.NoHandlerFoundException</td><td>NOT_FOUND</td><th>404</td></tr>
  *  <tr> <td>o.s.web.HttpRequestMethodNotSupportedException</td><td>METHOD_NOT_ALLOWED</td><th>405</td></tr>
@@ -61,7 +62,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	// 400
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex,
-			final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+			final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
 		logException(ex);
 		final List<String> errors = new ArrayList<>();
 		for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -76,7 +77,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	}
 
 
-	@Override
+	@ExceptionHandler({ BindException.class })
 	protected ResponseEntity<Object> handleBindException(final BindException ex, final HttpHeaders headers,
 			final HttpStatus status, final WebRequest request) {
 
@@ -100,9 +101,8 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	}
 
 	@Override
-
 	protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers,
-			final HttpStatus status, final WebRequest request) {
+			final HttpStatusCode status, final WebRequest request) {
 
 		logException(ex);
 		final String error = ex.getValue() + " value for " + ex.getPropertyName() + " should be of type "
@@ -114,7 +114,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 
 	@Override
 	protected ResponseEntity<Object> handleMissingServletRequestPart(final MissingServletRequestPartException ex,
-			final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+			final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
 		log.info(ex.getClass().getName());
 		final String error = ex.getRequestPartName() + " part is missing";
 		final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ApiErrorCodes.MISSING_MULTIPART.getCode(),
@@ -124,7 +124,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 
 	@Override
 	protected ResponseEntity<Object> handleMissingServletRequestParameter(
-			final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatus status,
+			final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatusCode status,
 			final WebRequest request) {
 		logException(ex);
 		final String error = ex.getParameterName() + " parameter is missing";
@@ -160,7 +160,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		logException(ex);
 		String error = "Either JSON syntax is invalid, or RSpace could not parse an expected date or numeric field";
 		final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ApiErrorCodes.UNREADABLE.getCode(),
@@ -171,7 +171,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	// 404
 	@Override
 	protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex,
-			final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+			final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
 		logException(ex);
 		final String error = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
 		final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ApiErrorCodes.NO_HANDLER.getCode(),
@@ -182,7 +182,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	// 405
 	@Override
 	protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
-			final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatus status,
+			final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status,
 			final WebRequest request) {
 		log.info(ex.getClass().getName());
 		final StringBuilder builder = new StringBuilder();
@@ -198,7 +198,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	// 415
 	@Override
 	protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex,
-			final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+			final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
 		logException(ex);
 		final StringBuilder builder = new StringBuilder();
 		builder.append(ex.getContentType());
@@ -231,8 +231,9 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 		return handle500Error(ex, ApiErrorCodes.INTERNAL_ARGUMENT_CONVERSION, "Error converting argument");
 	}
 
+	@Override
 	protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		String error = "Missing required header or parameter - have you supplied an 'apiKey' header?";
 		final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ApiErrorCodes.BINDING.getCode(),
 				ex.getLocalizedMessage(), error);

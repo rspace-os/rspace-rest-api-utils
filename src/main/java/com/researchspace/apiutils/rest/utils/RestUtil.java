@@ -4,12 +4,14 @@
 package com.researchspace.apiutils.rest.utils;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.ResourceAccessException;
 
 import com.researchspace.apiutils.ApiError;
 import com.researchspace.apiutils.ApiErrorCodes;
 import com.researchspace.core.util.JacksonUtil;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
 
 /** <pre>
@@ -32,10 +34,8 @@ Utility methods for REST clients
 */
 public class RestUtil {
 
-    public static boolean isError(HttpStatus status) {
-        HttpStatus.Series series = status.series();
-        return (HttpStatus.Series.CLIENT_ERROR.equals(series)
-                || HttpStatus.Series.SERVER_ERROR.equals(series));
+    public static boolean isError(HttpStatusCode status) {
+        return status.isError();
     }
    /**
     * Generates an ApiError from a Throwable. If the throwable is an HttpStatusCodeException
@@ -44,7 +44,6 @@ public class RestUtil {
     *  objects.
     */
    public static ApiError fromException(Throwable e) {
-
 		if (e instanceof HttpStatusCodeException) {
 			HttpStatusCodeException ce = (HttpStatusCodeException) e;
 			return JacksonUtil.fromJson(ce.getResponseBodyAsString(), ApiError.class);

@@ -33,6 +33,11 @@ import lombok.extern.slf4j.Slf4j;
 public class LoggingResponseErrorHandler implements ResponseErrorHandler {
 
     @Override
+    public void handleError(ClientHttpResponse response) throws IOException {
+        log.error("Response error: {} {}", response.getStatusCode(), response.getStatusText());
+    }
+
+    @Override
     public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
         log.error("Response error: {} {}", response.getStatusCode(), response.getStatusText());
     }

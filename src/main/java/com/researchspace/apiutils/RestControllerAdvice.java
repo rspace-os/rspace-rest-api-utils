@@ -77,9 +77,10 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 	}
 
 
-	@ExceptionHandler({ BindException.class })
-	protected ResponseEntity<Object> handleBindException(final BindException ex, final HttpHeaders headers,
-			final HttpStatus status, final WebRequest request) {
+	// In Spring 6.2, handleBindException was removed from ResponseEntityExceptionHandler.
+	// Handle BindException directly via @ExceptionHandler.
+	@ExceptionHandler(BindException.class)
+	protected ResponseEntity<Object> handleBindException(final BindException ex, final WebRequest request) {
 
 		logException(ex);
 		final List<String> errors = new ArrayList<>();
@@ -97,7 +98,7 @@ public abstract class RestControllerAdvice extends ResponseEntityExceptionHandle
 
 		final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ApiErrorCodes.INVALID_FIELD.getCode(),
 				"Errors detected : " + ex.getErrorCount(), errors, errorList);
-		return handleExceptionInternal(ex, apiError, headers, apiError.getStatus(), request);
+		return handleExceptionInternal(ex, apiError, new HttpHeaders(), apiError.getStatus(), request);
 	}
 
 	@Override

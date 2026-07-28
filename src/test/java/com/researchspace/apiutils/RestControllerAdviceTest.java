@@ -27,7 +27,7 @@ class RestControllerAdviceTest {
 	void testHandleBindException (){
 		RestControllerAdvice advice = new RestControllerAdvice() {};
 		BindException be = createTwoBindErrors();
-		ResponseEntity<Object> resultEntity = advice.handleBindException(be, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+		ResponseEntity<Object> resultEntity = advice.handleBindException(be, request);
 		ApiError error = (ApiError)resultEntity.getBody();
 		assertEquals(2, error.getErrors().size());
 		BindErrorList dataBindErrorList = (BindErrorList)error.getData();

@@ -90,7 +90,7 @@ public class SimpleResilienceFacadeTest {
 
 	ResponseEntity<String> createUnknownHttpException() {
 		calls++;
-		throw new UnknownHttpStatusCodeException(1000, "", null, null, null);
+		throw new UnknownHttpStatusCodeException(700, "", null, null, null);
 	}
 
 	byte[] createAnApiError(HttpStatus status) {

@@ -1,11 +1,10 @@
-/*
- * 
- */
 package com.researchspace.apiutils.rest.utils;
 
 
 import java.io.IOException;
+import java.net.URI;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 
@@ -35,6 +34,11 @@ public class LoggingResponseErrorHandler implements ResponseErrorHandler {
 
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
+        log.error("Response error: {} {}", response.getStatusCode(), response.getStatusText());
+    }
+
+    @Override
+    public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
         log.error("Response error: {} {}", response.getStatusCode(), response.getStatusText());
     }
 
